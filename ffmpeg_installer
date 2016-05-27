@@ -1,0 +1,209 @@
+#!/bin/bash
+
+#############
+##WELCOME TO EASY FFMPEG INSTALLER v0.1
+##
+#####################################
+
+
+###############EDIT HERE ############
+ffmpeg_sources_dir=/home/.ffmpeg_sources;
+
+bindir=/usr/bin;
+
+ffmpeg_build=/ffmpeg_build;
+
+################DO NOT EDIT BELOW ####################
+
+###################### Functions ################
+
+function install_libx264()
+{
+dialog --infobox "Installing LIBx264 ..." 20 30; 
+sleep 3 && \
+sudo apt-get -y install libx264-dev;
+
+};
+
+
+function install_libx265()
+{
+dialog --infobox "Installing Libx265 Hevc Encoder/ Decoder ..." 20 30;
+sleep 3 && \
+sudo apt-get --force-yes -y install cmake mercurial;
+cd $ffmpeg_sources_dir;
+hg clone https://bitbucket.org/multicoreware/x265;
+cd $ffmpeg_sources_dir/x265/build/linux;
+PATH="$bindir:$PATH" cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$ffmpeg_build" -DENABLE_SHARED:bool=off ../../source;
+make;
+make install;
+make distclean;
+};
+
+
+function install_libfdk_aac()
+{
+dialog --infobox "Installing Libfdk_aac AAC Encoder/ Decoder ..." 20 30;
+sleep 3 && \
+cd $ffmpeg_sources_dir;
+wget -c -O fdk-aac.tar.gz https://github.com/mstorsjo/fdk-aac/tarball/master
+tar xzvf fdk-aac.tar.gz
+cd mstorsjo-fdk-aac*
+autoreconf -fiv
+./configure --prefix="$ffmpeg_build" --disable-shared
+make
+make install
+make distclean
+
+echo "Libx265 Installation done";
+};
+
+function install_libmp3lame()
+{
+dialog --infobox "Installing Libmp3Lame , Mp3 Encoder / Decoder  ..." 20 30;
+sleep 3 && \
+sudo apt-get --force-yes -y  install libmp3lame-dev;
+
+echo "LibMp3Lame Installation Done";
+}
+
+
+function install_libopus()
+{
+dialog --infobox "Installing libopus , Opus Encoder / Decoder  ..." 20 30;
+sleep 3 && \
+sudo apt-get --force-yes -y  install libopus-dev;
+echo "Lib Opus Installation completed...";
+}
+
+
+
+function install_libvpx()
+{
+dialog --infobox "Installing libvpx , VP8 & Vp9 Encoder / Decoder  ..." 20 30;
+sleep 3 && \
+cd $ffmpeg_sources_dir;
+wget -c http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2
+tar xjvf libvpx-1.5.0.tar.bz2
+cd libvpx-1.5.0
+PATH="$bindir:$PATH" ./configure --prefix="$ffmpeg_build" --disable-examples --disable-unit-tests
+PATH="$bindir:$PATH" make;
+make install;
+make clean;
+echo "Libvpx Installation completed...";
+}
+
+
+function install_libvorbis()
+{
+dialog --infobox "Installing libvorbis , Vorbis Encoder / Decoder  ..." 20 30;
+sleep 3 && \
+sudo apt-get --force-yes -y  install libvorbis-dev;
+echo "Libvorbis Installation done...";
+}
+
+
+function install_libtheora()
+{
+dialog --infobox "Installing libtheora , Theora Encoder / Decoder  ..." 20 30;
+sleep 3 && \
+sudo apt-get --force-yes -y  install libtheora-dev;
+echo "Libvorbis Installation done...";
+};
+
+
+
+#################END Functions ##################
+
+sudo apt-get --assume-yes -y install dialog;
+
+mkdir -p $ffmpeg_sources_dir;
+
+options_file=$ffmpeg_sources_dir/options.txt;
+
+#rename File if it exists 
+unlink $options_file;
+
+dialog  --checklist "Select the codecs to install : \nPress The BACKSPACE KEY to select a checkbox ,\n Press The ENTER KEY to start the installation" 25 100 8 \
+"libx264" "H.264 Codec" on \
+"libx265" "H.265 Codec" on \
+"libfdk_aac" "AAC Codec" on \
+"libmp3lame" "Mp3 Codec" on \
+"libopus"  "Opus Codec" on \
+"libvpx" "VP8 / VP9 Codec" on \
+"libvorbis" "Vorbis Format Codec" on \
+"libtheora" "Theora Format Codec" on \
+2> $options_file;
+
+
+options_array=`cat $options_file`
+
+#if no option is selected kill script
+if [ ${#options_array} -eq 0 ]; then
+    ###Clean install dir 
+	rm -rf $ffmpeg_sources_dir;
+	echo "Cleaning Installation Directory ...";
+	echo " FFmpeg Installation failed, no option selected ... ";
+    exit 1;
+fi;
+
+
+dialog --infobox "Updating Libs  ..." 20 30;
+sleep 3 && \
+sudo apt-get --force-yes -y  update;
+
+sleep 1;
+
+dialog --infobox "Installing Dev Libs  ..." 20 30;
+sleep 3 && \
+sudo apt-get  --fix-missing --force-yes -y  install autoconf automake build-essential libass-dev libfreetype6-dev libsdl1.2-dev libtool libva-dev libvdpau-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev;
+  
+
+dialog --infobox "Installing YASM  ..." 20 30;
+sleep 3 && \
+sudo apt-get --force-yes -y install yasm;
+
+
+for option in $options_array
+   do
+      func_name=install_${option};
+      ${func_name};
+   done;
+
+
+
+#Install ffmpeg 
+dialog --infobox "Installing Ffempeg Library  ..." 20 30;
+sleep 3 && \
+cd $ffmpeg_sources_dir;
+wget -c http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2;
+tar xjvf ffmpeg-snapshot.tar.bz2;
+cd ffmpeg;
+PATH="$bindir:$PATH" PKG_CONFIG_PATH="$ffmpeg_build/lib/pkgconfig" ./configure \
+  --prefix="$ffmpeg_build" \
+  --pkg-config-flags="--static" \
+  --extra-cflags="-I$ffmpeg_build/include" \
+  --extra-ldflags="-L$ffmpeg_build/lib" \
+  --bindir="$bindir" \
+  --enable-gpl \
+  --enable-libass \
+  --enable-libfdk-aac \
+  --enable-libfreetype \
+  --enable-libmp3lame \
+  --enable-libopus \
+  --enable-libtheora \
+  --enable-libvorbis \
+  --enable-libvpx \
+  --enable-libx264 \
+  --enable-libx265 \
+  --enable-nonfree;
+PATH="$bindir:$PATH" 
+make;
+make install;
+make distclean;
+hash -r;   
+   
+
+rm -rf $ffmpeg_sources_dir;
+echo "Cleaning Installation Directory ...";
+echo "Ffmpeg installation success...";
