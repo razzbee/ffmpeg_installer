@@ -8,7 +8,4 @@ git clone https://github.com/razzbee/ffmpeg_installer.git <br />
 cd ffmpeg_installer <br />
 chmod +x ffmpeg_installer <br />
 mv ffmpeg_installer /usr/bin  <br />
-<br /><br />
-After installation , call the installer with :<br />
-ffmpeg_installer command <br />
-
+ffmpeg_installer <br>
