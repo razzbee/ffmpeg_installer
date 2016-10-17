@@ -6,9 +6,9 @@ Other Linux Distros will be added later , but for now its ubuntu only <br />
 #Installation <br />
 ```
 sudo apt-get install git dialog
-sudo git clone https://github.com/razzbee/ffmpeg_installer.git <br />
-cd ffmpeg_installer <br />
-sudo chmod +x ffmpeg_installer <br />
-sudo mv ffmpeg_installer /usr/bin  <br />
-sudo ffmpeg_installer <br>
+sudo git clone https://github.com/razzbee/ffmpeg_installer.git
+cd ffmpeg_installer
+sudo chmod +x ffmpeg_installer 
+sudo mv ffmpeg_installer /usr/bin  
+sudo ffmpeg_installer 
 ```
