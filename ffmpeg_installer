@@ -190,7 +190,6 @@ tar xjvf ffmpeg-snapshot.tar.bz2;
 cd ffmpeg;
 PATH="$bindir:$PATH" 
 PKG_CONFIG_PATH="$BUILD_PKG_CONFIG_PATH:$PKG_CONFIG_PATH"
-export $PKG_CONFIG_PATH
 ./configure \
   --prefix="$ffmpeg_build" \
   --pkg-config-flags="--static" \
@@ -214,12 +213,11 @@ export $PKG_CONFIG_PATH
 PATH="$bindir:$PATH" 
 make;
 make install;
-make distclean;
 hash -r;   
    
 echo "Creating symlink to ffmpeg and ffprobe"
-ln -s $bindir/ffmpeg /usr/local/ffmpeg 
-ln -s $bindir/ffmpeg /usr/local/ffprobe 
+ln -s "$bindir/ffmpeg" /usr/local/bin/ffmpeg 
+ln -s "$bindir/ffmpeg" /usr/local/bin/ffprobe 
 
 #rm -rf $ffmpeg_sources_dir;
 echo "Cleaning Installation Directory ...";
