@@ -13,6 +13,8 @@ bindir=/usr/bin;
 
 ffmpeg_build=/ffmpeg_build;
 
+rm -rf $ffmpeg_build
+
 ################DO NOT EDIT BELOW ####################
 
 ###################### Functions ################
@@ -30,10 +32,11 @@ function install_libx265()
 {
 dialog --infobox "Installing Libx265 Hevc Encoder/ Decoder ..." 20 30;
 sleep 3 && \
-sudo apt-get --force-yes -y install cmake mercurial;
+sudo apt-get install mercurial libnuma-dev
 cd $ffmpeg_sources_dir;
 hg clone https://bitbucket.org/multicoreware/x265;
-cd $ffmpeg_sources_dir/x265/build/linux;
+cd $ffmpeg_sources_dir/x265/build/linux; 
+export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
 PATH="$bindir:$PATH" cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$ffmpeg_build" -DENABLE_SHARED:bool=off ../../source;
 make;
 make install;
@@ -62,7 +65,7 @@ function install_libmp3lame()
 {
 dialog --infobox "Installing Libmp3Lame , Mp3 Encoder / Decoder  ..." 20 30;
 sleep 3 && \
-sudo apt-get --force-yes -y  install libmp3lame-dev;
+sudo apt-get  -y  install libmp3lame-dev;
 
 echo "LibMp3Lame Installation Done";
 }
@@ -72,7 +75,7 @@ function install_libopus()
 {
 dialog --infobox "Installing libopus , Opus Encoder / Decoder  ..." 20 30;
 sleep 3 && \
-sudo apt-get --force-yes -y  install libopus-dev;
+sudo apt-get -y  install libopus-dev;
 echo "Lib Opus Installation completed...";
 }
 
@@ -83,10 +86,9 @@ function install_libvpx()
 dialog --infobox "Installing libvpx , VP8 & Vp9 Encoder / Decoder  ..." 20 30;
 sleep 3 && \
 cd $ffmpeg_sources_dir;
-wget -c http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2
-tar xjvf libvpx-1.5.0.tar.bz2
-cd libvpx-1.5.0
-PATH="$bindir:$PATH" ./configure --prefix="$ffmpeg_build" --disable-examples --disable-unit-tests
+git clone --depth 1 https://chromium.googlesource.com/webm/libvpx.git 
+cd libvpx
+PATH="$bindir:$PATH" ./configure --prefix="$ffmpeg_build" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --as=yasm
 PATH="$bindir:$PATH" make;
 make install;
 make clean;
@@ -98,7 +100,7 @@ function install_libvorbis()
 {
 dialog --infobox "Installing libvorbis , Vorbis Encoder / Decoder  ..." 20 30;
 sleep 3 && \
-sudo apt-get --force-yes -y  install libvorbis-dev;
+sudo apt-get  -y  install libvorbis-dev;
 echo "Libvorbis Installation done...";
 }
 
@@ -107,7 +109,7 @@ function install_libtheora()
 {
 dialog --infobox "Installing libtheora , Theora Encoder / Decoder  ..." 20 30;
 sleep 3 && \
-sudo apt-get --force-yes -y  install libtheora-dev;
+sudo apt-get  -y  install libtheora-dev;
 echo "Libvorbis Installation done...";
 };
 
@@ -150,18 +152,18 @@ fi;
 
 dialog --infobox "Updating Libs  ..." 20 30;
 sleep 3 && \
-sudo apt-get --force-yes -y  update;
+sudo apt-get  -y  update;
 
 sleep 1;
 
 dialog --infobox "Installing Dev Libs  ..." 20 30;
 sleep 3 && \
-sudo apt-get  --fix-missing --force-yes -y  install autoconf automake build-essential libass-dev libfreetype6-dev libsdl1.2-dev libtool libva-dev libvdpau-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev;
+sudo apt-get  --fix-missing  -y  install autoconf automake build-essential libass-dev libfreetype6-dev libsdl1.2-dev libtool libva-dev libvdpau-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev;
   
 
 dialog --infobox "Installing YASM  ..." 20 30;
 sleep 3 && \
-sudo apt-get --force-yes -y install yasm;
+sudo apt-get -y install yasm;
 
 
 for option in $options_array
@@ -171,6 +173,7 @@ for option in $options_array
    done;
 
 
+BUILD_PKG_CONFIG_PATH="$ffmpeg_build/lib/pkgconfig"
 
 #Install ffmpeg 
 dialog --infobox "Installing Ffempeg Library  ..." 20 30;
@@ -179,7 +182,9 @@ cd $ffmpeg_sources_dir;
 wget -c http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2;
 tar xjvf ffmpeg-snapshot.tar.bz2;
 cd ffmpeg;
-PATH="$bindir:$PATH" PKG_CONFIG_PATH="$ffmpeg_build/lib/pkgconfig" ./configure \
+export PATH="$bindir:$PATH" 
+export PKG_CONFIG_PATH="$BUILD_PKG_CONFIG_PATH:$BUILD_PKG_CONFIG_PATH/x265.pc:$PKG_CONFIG_PATH"
+./configure \
   --prefix="$ffmpeg_build" \
   --pkg-config-flags="--static" \
   --extra-cflags="-I$ffmpeg_build/include" \
@@ -196,6 +201,7 @@ PATH="$bindir:$PATH" PKG_CONFIG_PATH="$ffmpeg_build/lib/pkgconfig" ./configure \
   --enable-libvpx \
   --enable-libx264 \
   --enable-libx265 \
+  --enable-nvenc \
   --enable-nonfree;
 PATH="$bindir:$PATH" 
 make;
@@ -204,6 +210,6 @@ make distclean;
 hash -r;   
    
 
-rm -rf $ffmpeg_sources_dir;
+#rm -rf $ffmpeg_sources_dir;
 echo "Cleaning Installation Directory ...";
 echo "Ffmpeg installation success...";
