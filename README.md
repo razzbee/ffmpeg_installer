@@ -9,6 +9,6 @@ sudo apt-get install git dialog
 sudo git clone https://github.com/razzbee/ffmpeg_installer.git
 cd ffmpeg_installer
 sudo chmod +x ffmpeg_installer 
-sudo mv ffmpeg_installer /usr/bin  
+sudo mv ffmpeg_installer /usr/local/bin  
 sudo ffmpeg_installer 
 ```
