@@ -1,4 +1,4 @@
-# ffmpeg_installer
+## ffmpeg_installer  (updated)
 Ffmpeg Compiler for Ubuntu <br />
 Compile Ffmpeg from sources with selectable codecs <br />
 Other Linux Distros will be added later , but for now its ubuntu only <br />
